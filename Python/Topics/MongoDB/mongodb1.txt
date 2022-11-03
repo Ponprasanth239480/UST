@@ -1,0 +1,20 @@
+show dbs;
+
+use newHRDatabase
+
+db.create collection(PersonalInfo);
+db.create collection(ProfessionalInfo);
+
+db.PersonalInfo.insert({Empid : "X20221010", EmpName : "Pritam", Age : 26 , Gender : "Male", Contact : 9988776655, City : "Delhi"})
+ db.PersonalInfo.insertMany([{Empid : "X20221011", EmpName : "Geetanjali", Age : 27 , Gender : "Female" , City : "NewYork"},{Empid : "X20221013", EmpName : "Sonam", Age : 29 , Gender : "Female", Contact : 7788995533, City : "Bangaluru"},{Empid : "X20221017", EmpName : "Shekhar", Age : 29, Gender : "Male", City : "Pune"}])
+
+db.ProfessionalInfo.insertMany([{Designation:"Consultant", Department:"Finance",Income:80000},{Designation:"Sr.Developer", Department:"IT",Income:90000},{Designation:"Data Analyst", Department:"Software",Income:150000},{Designation:"Manager", Department:"Logistics",Income:200000}])
+
+db.PersonalInfo.update({EmpName : "Geetanjali"},{$set:{Age:"25"}})
+db.PersonalInfo.update({Empid : "X20221013"},{$set:{Age:"31"}})
+db.PersonalInfo.update({City : "NewYork"},{$set:{City : "Chennai"}})
+db.PersonalInfo.update({City : "Bangaluru"},{$set:{City : "Kolkata"}})
+
+
+db.PersonalInfo.find().pretty()
+db.ProfessionalInfo.find().pretty()

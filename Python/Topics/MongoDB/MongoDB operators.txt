@@ -1,0 +1,769 @@
+
+db.sales.aggregate([{ $group : { _id : '$item', averageAmount : { $avg : { $multiply : [ '$quantity' ,'$price'] }}}}])
+db.sales.aggregate([{$group:{_id:"$item",maxQty:{$max:"$quantity"}}}])
+db.sales.aggregate([{$group:{_id:null,maxQty:{$max:"$quantity"}}},{$project:{_id:0}}])
+supermarket> db.sales.aggregate([{$group:{_id:"$item",maxQty:{$max:"$quantity"}}},{$project:{_id:0}}])
+test> use bookstoredb
+switched to db bookstoredb
+bookstoredb> show collections
+bookcollection
+products
+bookstoredb> db.products.find().pretty()
+[
+  {
+    _id: 1,
+    name: 'iphone',
+    price: 78000,
+    releasedate: ISODate("2022-08-14T00:00:00.000Z"),
+    color: [ 'white', 'black', 'blue' ],
+    storage: [ 64, 128, 256 ]
+  },
+  {
+    _id: 2,
+    name: 'ipad',
+    price: 85000,
+    releasedate: ISODate("2022-09-11T00:00:00.000Z"),
+    color: [ 'red', 'black', 'grey' ],
+    storage: [ 64, 128, 256 ]
+  }
+]
+bookstoredb> db.products.insertMany([{ _id: 4, name: "iPhone14", price: 98000, releasedate: ISODate("2022-09-14"), colorcolor: ["White", "Blue", "Black"], storage: [64, 128, 256], "spec" : { "Ram" : 8, "Screen" : 6.5, "Cpu":2.66 } }])
+{ acknowledged: true, insertedIds: { '0': 4 } }
+bookstoredb> db.products.insertMany([{ _id: 5, name: "OnePlus 10R", price:37000, releasedate: ISODate("2021-09-14"), colcolor: ["Green", "Blue", "Black"], storage: [128, 256], "spec" : { "Ram" : 8, "Screen" : 6.5, "Cpu":2.66 } }])
+{ acknowledged: true, insertedIds: { '0': 5 } }
+bookstoredb> db.products.insertMany([{ _id: 6, name: "OnePlus Nord", price:37000, releasedate: ISODate("2022-09-14"), cocolor: ["Green", "Blue", "Black"], storage: [128, 256], "spec" : { "Ram" : 16, "Screen" : 6.5, "Cpu":2.8 } }])
+{ acknowledged: true, insertedIds: { '0': 6 } }
+bookstoredb> db.products.find({"spec.Ram" : { $gt : 8}})
+[
+  {
+    _id: 6,
+    name: 'OnePlus Nord',
+    price: 37000,
+    releasedate: ISODate("2022-09-14T00:00:00.000Z"),
+    color: [ 'Green', 'Blue', 'Black' ],
+    storage: [ 128, 256 ],
+    spec: { Ram: 16, Screen: 6.5, Cpu: 2.8 }
+  }
+]
+bookstoredb> db.products.find({"spec.Ram" : { $gt : 8 }} , { name : 1, "spec.Ram" : 1})
+[ { _id: 6, name: 'OnePlus Nord', spec: { Ram: 16 } } ]
+bookstoredb> db.products.find({price : { $gt : 78000 }} , { name : 1, "spec.Ram" : 1})
+[
+  { _id: 2, name: 'ipad' },
+  { _id: 4, name: 'iPhone14', spec: { Ram: 8 } }
+]
+bookstoredb> db.products.find({price : { $gte : 78000 }} , { name : 1, "spec.Ram" : 1})
+[
+  { _id: 1, name: 'iphone' },
+  { _id: 2, name: 'ipad' },
+  { _id: 4, name: 'iPhone14', spec: { Ram: 8 } }
+]
+bookstoredb> db.products.find({price : { $lt : 78000 }} , { name : 1, "spec.Ram" : 1})
+[
+  { _id: 5, name: 'OnePlus 10R', spec: { Ram: 8 } },
+  { _id: 6, name: 'OnePlus Nord', spec: { Ram: 16 } }
+]
+bookstoredb> db.products.find({price : { $lte : 78000 }} , { name : 1, "spec.Ram" : 1})
+[
+  { _id: 1, name: 'iphone' },
+  { _id: 5, name: 'OnePlus 10R', spec: { Ram: 8 } },
+  { _id: 6, name: 'OnePlus Nord', spec: { Ram: 16 } }
+]
+bookstoredb> db.products.find({price : { $ne : 78000 }} , { name : 1, price : 1})
+[
+  { _id: 2, name: 'ipad', price: 85000 },
+  { _id: 4, name: 'iPhone14', price: 98000 },
+  { _id: 5, name: 'OnePlus 10R', price: 37000 },
+  { _id: 6, name: 'OnePlus Nord', price: 37000 }
+]
+bookstoredb> db.products.find({price : { $in : [78000,37000]}} , { name : 1, price : 1})
+[
+  { _id: 1, name: 'iphone', price: 78000 },
+  { _id: 5, name: 'OnePlus 10R', price: 37000 },
+  { _id: 6, name: 'OnePlus Nord', price: 37000 }
+]
+bookstoredb> db.products.find({price : { $nin : [78000,85000]}} , { name : 1, price : 1})
+[
+  { _id: 4, name: 'iPhone14', price: 98000 },
+  { _id: 5, name: 'OnePlus 10R', price: 37000 },
+  { _id: 6, name: 'OnePlus Nord', price: 37000 }
+]
+bookstoredb> db.products.find({$and :[{ price : 37000 },{ "spec.Ram":8}]}))
+Uncaught:
+SyntaxError: Missing semicolon. (1:61)
+
+> 1 | db.products.find({$and :[{ price : 37000 },{ "spec.Ram":8}]}))
+    |                                                              ^
+  2 |
+
+bookstoredb> db.products.find({$and :[{ price : 37000 },{ "spec.Ram":8}]})
+[
+  {
+    _id: 5,
+    name: 'OnePlus 10R',
+    price: 37000,
+    releasedate: ISODate("2021-09-14T00:00:00.000Z"),
+    color: [ 'Green', 'Blue', 'Black' ],
+    storage: [ 128, 256 ],
+    spec: { Ram: 8, Screen: 6.5, Cpu: 2.66 }
+  }
+]
+bookstoredb> db.products.find({ $and : [{ price : 37000 }, { "spec.Ram" : 8 }]}, { name : 1, price : 1, storage : 1})
+[
+  { _id: 5, name: 'OnePlus 10R', price: 37000, storage: [ 128, 256 ] }
+]
+bookstoredb> db.products.find({ $and : [{ price : 37000 }, { "spec.Ram" : 8 }]}, { name : 1, price : 1, storage : 1})
+[
+  { _id: 5, name: 'OnePlus 10R', price: 37000, storage: [ 128, 256 ] }
+]
+bookstoredb> db.products.find({ $or : [{ price : 37000 }, { "spec.Ram" : 8 }]}, { name : 1, price : 1, storage : 1})
+[
+  { _id: 4, name: 'iPhone14', price: 98000, storage: [ 64, 128, 256 ] },
+  { _id: 5, name: 'OnePlus 10R', price: 37000, storage: [ 128, 256 ] },
+  { _id: 6, name: 'OnePlus Nord', price: 37000, storage: [ 128, 256 ] }
+]
+bookstoredb> db.products.find({ price:{$not:{$gt:38000}}})
+[
+  {
+    _id: 5,
+    name: 'OnePlus 10R',
+    price: 37000,
+    releasedate: ISODate("2021-09-14T00:00:00.000Z"),
+    color: [ 'Green', 'Blue', 'Black' ],
+    storage: [ 128, 256 ],
+    spec: { Ram: 8, Screen: 6.5, Cpu: 2.66 }
+  },
+  {
+    _id: 6,
+    name: 'OnePlus Nord',
+    price: 37000,
+    releasedate: ISODate("2022-09-14T00:00:00.000Z"),
+    color: [ 'Green', 'Blue', 'Black' ],
+    storage: [ 128, 256 ],
+    spec: { Ram: 16, Screen: 6.5, Cpu: 2.8 }
+  }
+]
+bookstoredb> db.products.find({ price:{$not:{$gt:38000,$lte:78000}}})
+[
+  {
+    _id: 2,
+    name: 'ipad',
+    price: 85000,
+    releasedate: ISODate("2022-09-11T00:00:00.000Z"),
+    color: [ 'red', 'black', 'grey' ],
+    storage: [ 64, 128, 256 ]
+  },
+  {
+    _id: 4,
+    name: 'iPhone14',
+    price: 98000,
+    releasedate: ISODate("2022-09-14T00:00:00.000Z"),
+    color: [ 'White', 'Blue', 'Black' ],
+    storage: [ 64, 128, 256 ],
+    spec: { Ram: 8, Screen: 6.5, Cpu: 2.66 }
+  },
+  {
+    _id: 5,
+    name: 'OnePlus 10R',
+    price: 37000,
+    releasedate: ISODate("2021-09-14T00:00:00.000Z"),
+    color: [ 'Green', 'Blue', 'Black' ],
+    storage: [ 128, 256 ],
+    spec: { Ram: 8, Screen: 6.5, Cpu: 2.66 }
+  },
+  {
+    _id: 6,
+    name: 'OnePlus Nord',
+    price: 37000,
+    releasedate: ISODate("2022-09-14T00:00:00.000Z"),
+    color: [ 'Green', 'Blue', 'Black' ],
+    storage: [ 128, 256 ],
+    spec: { Ram: 16, Screen: 6.5, Cpu: 2.8 }
+  }
+]
+bookstoredb> db.products.find({ price:{$gt:38000,$lte:78000}})
+[
+  {
+    _id: 1,
+    name: 'iphone',
+    price: 78000,
+    releasedate: ISODate("2022-08-14T00:00:00.000Z"),
+    color: [ 'white', 'black', 'blue' ],
+    storage: [ 64, 128, 256 ]
+  }
+]
+bookstoredb> db.products.find({$nor :[{ price : 37000 }]})
+[
+  {
+    _id: 1,
+    name: 'iphone',
+    price: 78000,
+    releasedate: ISODate("2022-08-14T00:00:00.000Z"),
+    color: [ 'white', 'black', 'blue' ],
+    storage: [ 64, 128, 256 ]
+  },
+  {
+    _id: 2,
+    name: 'ipad',
+    price: 85000,
+    releasedate: ISODate("2022-09-11T00:00:00.000Z"),
+    color: [ 'red', 'black', 'grey' ],
+    storage: [ 64, 128, 256 ]
+  },
+  {
+    _id: 4,
+    name: 'iPhone14',
+    price: 98000,
+    releasedate: ISODate("2022-09-14T00:00:00.000Z"),
+    color: [ 'White', 'Blue', 'Black' ],
+    storage: [ 64, 128, 256 ],
+    spec: { Ram: 8, Screen: 6.5, Cpu: 2.66 }
+  }
+]
+bookstoredb> db.products.find({$nor :[{ price : 37000 },{color:"black"}]})
+[
+  {
+    _id: 4,
+    name: 'iPhone14',
+    price: 98000,
+    releasedate: ISODate("2022-09-14T00:00:00.000Z"),
+    color: [ 'White', 'Blue', 'Black' ],
+    storage: [ 64, 128, 256 ],
+    spec: { Ram: 8, Screen: 6.5, Cpu: 2.66 }
+  }
+]
+bookstoredb> db.products.find({price :{ $exists : true}})
+[
+  {
+    _id: 1,
+    name: 'iphone',
+    price: 78000,
+    releasedate: ISODate("2022-08-14T00:00:00.000Z"),
+    color: [ 'white', 'black', 'blue' ],
+    storage: [ 64, 128, 256 ]
+  },
+  {
+    _id: 2,
+    name: 'ipad',
+    price: 85000,
+    releasedate: ISODate("2022-09-11T00:00:00.000Z"),
+    color: [ 'red', 'black', 'grey' ],
+    storage: [ 64, 128, 256 ]
+  },
+  {
+    _id: 4,
+    name: 'iPhone14',
+    price: 98000,
+    releasedate: ISODate("2022-09-14T00:00:00.000Z"),
+    color: [ 'White', 'Blue', 'Black' ],
+    storage: [ 64, 128, 256 ],
+    spec: { Ram: 8, Screen: 6.5, Cpu: 2.66 }
+  },
+  {
+    _id: 5,
+    name: 'OnePlus 10R',
+    price: 37000,
+    releasedate: ISODate("2021-09-14T00:00:00.000Z"),
+    color: [ 'Green', 'Blue', 'Black' ],
+    storage: [ 128, 256 ],
+    spec: { Ram: 8, Screen: 6.5, Cpu: 2.66 }
+  },
+  {
+    _id: 6,
+    name: 'OnePlus Nord',
+    price: 37000,
+    releasedate: ISODate("2022-09-14T00:00:00.000Z"),
+    color: [ 'Green', 'Blue', 'Black' ],
+    storage: [ 128, 256 ],
+    spec: { Ram: 16, Screen: 6.5, Cpu: 2.8 }
+  }
+]
+bookstoredb> db.products.find({price :{ $exists : true}}).sort({price:1})
+[
+  {
+    _id: 5,
+    name: 'OnePlus 10R',
+    price: 37000,
+    releasedate: ISODate("2021-09-14T00:00:00.000Z"),
+    color: [ 'Green', 'Blue', 'Black' ],
+    storage: [ 128, 256 ],
+    spec: { Ram: 8, Screen: 6.5, Cpu: 2.66 }
+  },
+  {
+    _id: 6,
+    name: 'OnePlus Nord',
+    price: 37000,
+    releasedate: ISODate("2022-09-14T00:00:00.000Z"),
+    color: [ 'Green', 'Blue', 'Black' ],
+    storage: [ 128, 256 ],
+    spec: { Ram: 16, Screen: 6.5, Cpu: 2.8 }
+  },
+  {
+    _id: 1,
+    name: 'iphone',
+    price: 78000,
+    releasedate: ISODate("2022-08-14T00:00:00.000Z"),
+    color: [ 'white', 'black', 'blue' ],
+    storage: [ 64, 128, 256 ]
+  },
+  {
+    _id: 2,
+    name: 'ipad',
+    price: 85000,
+    releasedate: ISODate("2022-09-11T00:00:00.000Z"),
+    color: [ 'red', 'black', 'grey' ],
+    storage: [ 64, 128, 256 ]
+  },
+  {
+    _id: 4,
+    name: 'iPhone14',
+    price: 98000,
+    releasedate: ISODate("2022-09-14T00:00:00.000Z"),
+    color: [ 'White', 'Blue', 'Black' ],
+    storage: [ 64, 128, 256 ],
+    spec: { Ram: 8, Screen: 6.5, Cpu: 2.66 }
+  }
+]
+bookstoredb> db.products.find({price :{ $exists : true}}).sort({price:1 , releasedate:1})
+[
+  {
+    _id: 5,
+    name: 'OnePlus 10R',
+    price: 37000,
+    releasedate: ISODate("2021-09-14T00:00:00.000Z"),
+    color: [ 'Green', 'Blue', 'Black' ],
+    storage: [ 128, 256 ],
+    spec: { Ram: 8, Screen: 6.5, Cpu: 2.66 }
+  },
+  {
+    _id: 6,
+    name: 'OnePlus Nord',
+    price: 37000,
+    releasedate: ISODate("2022-09-14T00:00:00.000Z"),
+    color: [ 'Green', 'Blue', 'Black' ],
+    storage: [ 128, 256 ],
+    spec: { Ram: 16, Screen: 6.5, Cpu: 2.8 }
+  },
+  {
+    _id: 1,
+    name: 'iphone',
+    price: 78000,
+    releasedate: ISODate("2022-08-14T00:00:00.000Z"),
+    color: [ 'white', 'black', 'blue' ],
+    storage: [ 64, 128, 256 ]
+  },
+  {
+    _id: 2,
+    name: 'ipad',
+    price: 85000,
+    releasedate: ISODate("2022-09-11T00:00:00.000Z"),
+    color: [ 'red', 'black', 'grey' ],
+    storage: [ 64, 128, 256 ]
+  },
+  {
+    _id: 4,
+    name: 'iPhone14',
+    price: 98000,
+    releasedate: ISODate("2022-09-14T00:00:00.000Z"),
+    color: [ 'White', 'Blue', 'Black' ],
+    storage: [ 64, 128, 256 ],
+    spec: { Ram: 8, Screen: 6.5, Cpu: 2.66 }
+  }
+]
+bookstoredb> db.products.find({spec :{ $exists : true}}).sort({price:1 , "spec.Ram":1})
+[
+  {
+    _id: 5,
+    name: 'OnePlus 10R',
+    price: 37000,
+    releasedate: ISODate("2021-09-14T00:00:00.000Z"),
+    color: [ 'Green', 'Blue', 'Black' ],
+    storage: [ 128, 256 ],
+    spec: { Ram: 8, Screen: 6.5, Cpu: 2.66 }
+  },
+  {
+    _id: 6,
+    name: 'OnePlus Nord',
+    price: 37000,
+    releasedate: ISODate("2022-09-14T00:00:00.000Z"),
+    color: [ 'Green', 'Blue', 'Black' ],
+    storage: [ 128, 256 ],
+    spec: { Ram: 16, Screen: 6.5, Cpu: 2.8 }
+  },
+  {
+    _id: 4,
+    name: 'iPhone14',
+    price: 98000,
+    releasedate: ISODate("2022-09-14T00:00:00.000Z"),
+    color: [ 'White', 'Blue', 'Black' ],
+    storage: [ 64, 128, 256 ],
+    spec: { Ram: 8, Screen: 6.5, Cpu: 2.66 }
+  }
+]
+bookstoredb> db.products.updateOne({ _id : 1 }, {$set : { spec : {Ram : 12, Screen : 5.7, Cpu : 3.66} }})
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 1,
+  modifiedCount: 1,
+  upsertedCount: 0
+}
+bookstoredb> db.products.find({ _id : 1 })
+[
+  {
+    _id: 1,
+    name: 'iphone',
+    price: 78000,
+    releasedate: ISODate("2022-08-14T00:00:00.000Z"),
+    color: [ 'white', 'black', 'blue' ],
+    storage: [ 64, 128, 256 ],
+    spec: { Ram: 12, Screen: 5.7, Cpu: 3.66 }
+  }
+]
+bookstoredb> db.products.updateOne({ _id : 1 }, {$set : { price :76000  }})
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 1,
+  modifiedCount: 1,
+  upsertedCount: 0
+}
+bookstoredb> db.products.find({ _id : 1 })
+[
+  {
+    _id: 1,
+    name: 'iphone',
+    price: 76000,
+    releasedate: ISODate("2022-08-14T00:00:00.000Z"),
+    color: [ 'white', 'black', 'blue' ],
+    storage: [ 64, 128, 256 ],
+    spec: { Ram: 12, Screen: 5.7, Cpu: 3.66 }
+  }
+]
+bookstoredb> db.products.find({},{name:1,price:1,storage:1}).sort({price:1}).limit(1)
+[
+  { _id: 5, name: 'OnePlus 10R', price: 37000, storage: [ 128, 256 ] }
+]
+bookstoredb> db.products.find({},{name:1,price:1,storage:1}).sort({price:-1}).limit(1)
+[
+  { _id: 4, name: 'iPhone14', price: 98000, storage: [ 64, 128, 256 ] }
+]
+bookstoredb> db.products.find({},{name:1,price:1,storage:1}).sort({price:1}).limit(2)
+[
+  { _id: 6, name: 'OnePlus Nord', price: 37000, storage: [ 128, 256 ] },
+  { _id: 5, name: 'OnePlus 10R', price: 37000, storage: [ 128, 256 ] }
+]
+bookstoredb> db.products.find({},{name:1,price:1,storage:1}).sort({price:-1}).limit(2)
+[
+  { _id: 4, name: 'iPhone14', price: 98000, storage: [ 64, 128, 256 ] },
+  { _id: 2, name: 'ipad', price: 85000, storage: [ 64, 128, 256 ] }
+]
+bookstoredb> db.products.find({},{name:1,price:1,storage:1}).sort({price:1}).skip(2).limit(2)
+[
+  { _id: 1, name: 'iphone', price: 76000, storage: [ 64, 128, 256 ] },
+  { _id: 2, name: 'ipad', price: 85000, storage: [ 64, 128, 256 ] }
+]
+bookstoredb> db.products.find({},{name:1,price:1,storage:1}).sort({price:1}).skip(2)
+[
+  { _id: 1, name: 'iphone', price: 76000, storage: [ 64, 128, 256 ] },
+  { _id: 2, name: 'ipad', price: 85000, storage: [ 64, 128, 256 ] },
+  { _id: 4, name: 'iPhone14', price: 98000, storage: [ 64, 128, 256 ] }
+]
+bookstoredb> db.products.find({},{name:1,price:1,storage:1}).sort({price:-1}).skip(2).limit(2)
+[
+  { _id: 1, name: 'iphone', price: 76000, storage: [ 64, 128, 256 ] },
+  { _id: 5, name: 'OnePlus 10R', price: 37000, storage: [ 128, 256 ] }
+]
+bookstoredb> db.products.updateMany({}, { $rename : {"spec.Screen" : "spec.ScreenSize"}})
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 5,
+  modifiedCount: 4,
+  upsertedCount: 0
+}
+bookstoredb> db.products.find({_id:1})
+[
+  {
+    _id: 1,
+    name: 'iphone',
+    price: 76000,
+    releasedate: ISODate("2022-08-14T00:00:00.000Z"),
+    color: [ 'white', 'black', 'blue' ],
+    storage: [ 64, 128, 256 ],
+    spec: { Ram: 12, Cpu: 3.66, ScreenSize: 5.7 }
+  }
+]
+bookstoredb> db.products.updateOne({_id:1}, { $max : {price:78000}})
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 1,
+  modifiedCount: 1,
+  upsertedCount: 0
+}
+bookstoredb> db.products.find({_id:1})
+[
+  {
+    _id: 1,
+    name: 'iphone',
+    price: 78000,
+    releasedate: ISODate("2022-08-14T00:00:00.000Z"),
+    color: [ 'white', 'black', 'blue' ],
+    storage: [ 64, 128, 256 ],
+    spec: { Ram: 12, Cpu: 3.66, ScreenSize: 5.7 }
+  }
+]
+bookstoredb> db.products.updateOne({_id:1}, { $min : {price:76000}})
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 1,
+  modifiedCount: 1,
+  upsertedCount: 0
+}
+bookstoredb> db.products.find({_id:1})
+[
+  {
+    _id: 1,
+    name: 'iphone',
+    price: 76000,
+    releasedate: ISODate("2022-08-14T00:00:00.000Z"),
+    color: [ 'white', 'black', 'blue' ],
+    storage: [ 64, 128, 256 ],
+    spec: { Ram: 12, Cpu: 3.66, ScreenSize: 5.7 }
+  }
+]
+bookstoredb> db.products.deleteOne({_id:1})
+{ acknowledged: true, deletedCount: 1 }
+bookstoredb> db.products.find().pretty()
+[
+  {
+    _id: 2,
+    name: 'ipad',
+    price: 85000,
+    releasedate: ISODate("2022-09-11T00:00:00.000Z"),
+    color: [ 'red', 'black', 'grey' ],
+    storage: [ 64, 128, 256 ]
+  },
+  {
+    _id: 4,
+    name: 'iPhone14',
+    price: 98000,
+    releasedate: ISODate("2022-09-14T00:00:00.000Z"),
+    color: [ 'White', 'Blue', 'Black' ],
+    storage: [ 64, 128, 256 ],
+    spec: { Ram: 8, Cpu: 2.66, ScreenSize: 6.5 }
+  },
+  {
+    _id: 5,
+    name: 'OnePlus 10R',
+    price: 37000,
+    releasedate: ISODate("2021-09-14T00:00:00.000Z"),
+    color: [ 'Green', 'Blue', 'Black' ],
+    storage: [ 128, 256 ],
+    spec: { Ram: 8, Cpu: 2.66, ScreenSize: 6.5 }
+  },
+  {
+    _id: 6,
+    name: 'OnePlus Nord',
+    price: 37000,
+    releasedate: ISODate("2022-09-14T00:00:00.000Z"),
+    color: [ 'Green', 'Blue', 'Black' ],
+    storage: [ 128, 256 ],
+    spec: { Ram: 16, Cpu: 2.8, ScreenSize: 6.5 }
+  }
+]
+bookstoredb>  db.products.deleteMany({price:37000})
+{ acknowledged: true, deletedCount: 2 }
+bookstoredb> db.products.find().pretty()
+[
+  {
+    _id: 2,
+    name: 'ipad',
+    price: 85000,
+    releasedate: ISODate("2022-09-11T00:00:00.000Z"),
+    color: [ 'red', 'black', 'grey' ],
+    storage: [ 64, 128, 256 ]
+  },
+  {
+    _id: 4,
+    name: 'iPhone14',
+    price: 98000,
+    releasedate: ISODate("2022-09-14T00:00:00.000Z"),
+    color: [ 'White', 'Blue', 'Black' ],
+    storage: [ 64, 128, 256 ],
+    spec: { Ram: 8, Cpu: 2.66, ScreenSize: 6.5 }
+  }
+]
+bookstoredb> use supermarket
+switched to db supermarket
+supermarket> db.sales.insertMany([ { _id: 1, item: "Coffee", price: 50, size: "small", quantity: 22, date: ISODate("2022-10-16") }, { _id: 2, item: "Cookies", price: 120, size: "medium", quantity: 30, date: ISODate("2022-10-16") }])
+{ acknowledged: true, insertedIds: { '0': 1, '1': 2 } }
+supermarket> db.sales.insertMany([ { _id: 3, item: "Peanut Butter", price: 380, size:"large", weight: 1000, quantity: 22, date: ISODate("2022-09-14") },  { _id: 4, item: "Oats", price: 230, size:"medium", weight: 500, quantity: 12, date: ISODate("2022-09-15") } ])
+{ acknowledged: true, insertedIds: { '0': 3, '1': 4 } }
+supermarket> db.sales.find().pretty()
+[
+  {
+    _id: 1,
+    item: 'Coffee',
+    price: 50,
+    size: 'small',
+    quantity: 22,
+    date: ISODate("2022-10-16T00:00:00.000Z")
+  },
+  {
+    _id: 2,
+    item: 'Cookies',
+    price: 120,
+    size: 'medium',
+    quantity: 30,
+    date: ISODate("2022-10-16T00:00:00.000Z")
+  },
+  {
+    _id: 3,
+    item: 'Peanut Butter',
+    price: 380,
+    size: 'large',
+    weight: 1000,
+    quantity: 22,
+    date: ISODate("2022-09-14T00:00:00.000Z")
+  },
+  {
+    _id: 4,
+    item: 'Oats',
+    price: 230,
+    size: 'medium',
+    weight: 500,
+    quantity: 12,
+    date: ISODate("2022-09-15T00:00:00.000Z")
+  }
+]
+supermarket> db.sales.insertMany([ { _id: 5, item: "Honey", price: 130, size:"small", weight: 250, quantity: 30, date: ISODate("2022-09-15")}])
+{ acknowledged: true, insertedIds: { '0': 5 } }
+supermarket> db.sales.insertMany([ { _id: 6, item: "Bread", price: 40, size:"large", weight: 450, quantity: 20, date: ISODate("2022-10-17")}])
+{ acknowledged: true, insertedIds: { '0': 6 } }
+supermarket> db.sales.aggregate([{$group:{_id:"size",totalQty:{$sum:"$quantity"}}},{$sort:{totalQty:-1}}])
+[ { _id: 'size', totalQty: 136 } ]
+supermarket> db.sales.aggregate([{$group:{_id:"$size",totalQty:{$sum:"$quantity"}}},{$sort:{totalQty:-1}}])
+[
+  { _id: 'small', totalQty: 52 },
+  { _id: 'medium', totalQty: 42 },
+  { _id: 'large', totalQty: 42 }
+]
+supermarket> db.sales.aggregate([{ $group : { _id : '$item', averageAmount : { $avg : { "price"}}}}])
+Uncaught:
+SyntaxError: Unexpected token (1:82)
+
+> 1 | db.sales.aggregate([{ $group : { _id : '$item', averageAmount : { $avg : { "price"}}}}])
+    |                                                                                   ^
+  2 |
+
+supermarket>
+
+
+
+
+
+
+
+]
+supermarket> db.sales.aggregate([{ $group: { _id: '$size', itemCount: { $count: { }}}}])
+[
+  { _id: 'small', itemCount: 2 },
+  { _id: 'medium', itemCount: 2 },
+  { _id: 'large', itemCount: 2 }
+]
+supermarket> db.sales.aggregate([{ $group: { _id: '$size', itemCount: { $count: { }}}},{$match:{itemCount:{$gt:1}}}])
+[
+  { _id: 'large', itemCount: 2 },
+  { _id: 'small', itemCount: 2 },
+  { _id: 'medium', itemCount: 2 }
+]
+supermarket> db.sales.aggregate([{$match:{item:"coffee"}},{ $group: { _id: '$size', itemCount: { $count: { }}}},{$match:{itemCount:{$gt:1}}}])
+
+supermarket> db.sales.insertMany([ { _id: 7, item: "Yogurt", price: 140, size:"large", weight: 400, quantity: 20, date: ISODate("2022-10-16")}])
+{ acknowledged: true, insertedIds: { '0': 7 } }
+supermarket> db.sales.aggregate([{ $group: { _id: '$size', itemCount: { $count: { }}}}, {$match : { itemCount : { $gt : 2 }}}])
+[ { _id: 'large', itemCount: 3 } ]
+supermarket> db.sales.aggregate([{ $group : { _id : '$item', averageAmount : { $avg : { $multiply : [ '$quantity' ,'$price'] }}}}])
+[
+  { _id: 'Yogurt', averageAmount: 2800 },
+  { _id: 'Honey', averageAmount: 3900 },
+  { _id: 'Coffee', averageAmount: 1100 },
+  { _id: 'Peanut Butter', averageAmount: 8360 },
+  { _id: 'Oats', averageAmount: 2760 },
+  { _id: 'Bread', averageAmount: 800 },
+  { _id: 'Cookies', averageAmount: 3600 }
+]
+supermarket> db.sales.aggregate([{$group:{_id:null,maxQty:{$max:"$quantity"}}}])
+[ { _id: null, maxQty: 30 } ]
+supermarket> db.sales.aggregate([{ $group : { _id : '$item', averageAmount : { $avg : { "$price"}}}}])
+Uncaught:
+SyntaxError: Unexpected token (1:83)
+
+> 1 | db.sales.aggregate([{ $group : { _id : '$item', averageAmount : { $avg : { "$price"}}}}])
+    |                                                                                    ^
+  2 |
+
+supermarket> db.sales.aggregate([{ $group : { _id : '$item', averageAmount : { $avg :  "price"}}}])
+[
+  { _id: 'Coffee', averageAmount: null },
+  { _id: 'Oats', averageAmount: null },
+  { _id: 'Bread', averageAmount: null },
+  { _id: 'Cookies', averageAmount: null },
+  { _id: 'Honey', averageAmount: null },
+  { _id: 'Yogurt', averageAmount: null },
+  { _id: 'Peanut Butter', averageAmount: null }
+]
+supermarket> db.sales.aggregate([{ $group : { _id : '$item', averageAmount : { $avg :  "$price"}}}])
+[
+  { _id: 'Honey', averageAmount: 130 },
+  { _id: 'Cookies', averageAmount: 120 },
+  { _id: 'Yogurt', averageAmount: 140 },
+  { _id: 'Bread', averageAmount: 40 },
+  { _id: 'Peanut Butter', averageAmount: 380 },
+  { _id: 'Coffee', averageAmount: 50 },
+  { _id: 'Oats', averageAmount: 230 }
+]
+supermarket> db.sales.aggregate([{$group:{_id:null,maxQty:{$max:"$quantity"}}},{$project:{_id:0}}])
+[ { maxQty: 30 } ]
+supermarket> db.sales.aggregate([{$group:{_id:"$item",maxQty:{$max:"$quantity"}}},{$project:{_id:0}}])
+[
+  { maxQty: 22 },
+  { maxQty: 12 },
+  { maxQty: 30 },
+  { maxQty: 20 },
+  { maxQty: 20 },
+  { maxQty: 30 },
+  { maxQty: 22 }
+]
+supermarket> db.sales.aggregate([{$group:{_id:"$item",maxQty:{$max:"$quantity"}}}])
+[
+  { _id: 'Peanut Butter', maxQty: 22 },
+  { _id: 'Coffee', maxQty: 22 },
+  { _id: 'Oats', maxQty: 12 },
+  { _id: 'Honey', maxQty: 30 },
+  { _id: 'Bread', maxQty: 20 },
+  { _id: 'Cookies', maxQty: 30 },
+  { _id: 'Yogurt', maxQty: 20 }
+]
+supermarket> db.sales.aggregate([{$group:{_id:"$item",minQty:{$min:"$quantity"}}},{$project:{_id:0}}])
+[
+  { minQty: 30 },
+  { minQty: 30 },
+  { minQty: 22 },
+  { minQty: 22 },
+  { minQty: 12 },
+  { minQty: 20 },
+  { minQty: 20 }
+]
+supermarket> db.sales.aggregate([{$group:{_id:null,minQty:{$min:"$quantity"}}},{$project:{_id:0}}])
+[ { minQty: 12 } ]
+supermarket>
+
+
+
+
+
+
